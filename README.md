@@ -12,8 +12,7 @@ In this task we are asked to look for objects with the provisions that have been
 I choose **jar**.
 
 | Top Front | Top Right | Top Left | Top Rear |
-| :---: | :---: | :---: | :---:|
-| ![enter image description here](img/front.jpg) | ![enter image description here](img/right.jpg) | ![enter image description here](img/left.jpg) |
-![enter image description here](img/rear.jpg) |
+| :---: | :---: | :---: | :---: |
+| ![enter image description here](img/front.jpg) | ![enter image description here](img/right.jpg) | ![enter image description here](img/left.jpg) | ![enter image description here](img/rear.jpg) |
 
 # Assignment 2
