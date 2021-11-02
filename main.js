@@ -65,7 +65,8 @@ function main() {
     gl.vertexAttribPointer(aColor, 3, gl.FLOAT, false, 5 * Float32Array.BYTES_PER_ELEMENT, 2 * Float32Array.BYTES_PER_ELEMENT);
     gl.enableVertexAttribArray(aColor);
 
-    var speed = 0.0176;
+    // var speed = 0.0003;
+    var speed = 0;
     var dy = 0;
     // Create a uniform to animate the vertices
     const uTranslate = gl.getUniformLocation(shaderProgram, 'uTranslate');
