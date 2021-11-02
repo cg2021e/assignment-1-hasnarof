@@ -65,15 +65,14 @@ function main() {
     gl.vertexAttribPointer(aColor, 3, gl.FLOAT, false, 5 * Float32Array.BYTES_PER_ELEMENT, 2 * Float32Array.BYTES_PER_ELEMENT);
     gl.enableVertexAttribArray(aColor);
 
-    // var speed = 0.0003;
-    var speed = 0;
+    var speed = 0.0003;
     var dy = 0;
     // Create a uniform to animate the vertices
     const uTranslate = gl.getUniformLocation(shaderProgram, 'uTranslate');
 
     function render() {
         //control the bouncing range
-        if (dy >= 0.75 || dy <= -0.55) speed = -speed;
+        if (dy >= 0.50 || dy <= -0.62) speed = -speed;
         dy += speed;
 
         const rightPosition = [
