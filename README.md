@@ -5,7 +5,6 @@ Name    : Fairuz Hasna Rofifah
 NRP     : 05111940000003
 
 Class   : Grafkom E
-
 # Assignment 1
 In this task we are asked to look for objects with the provisions that have been given, namely object whose name starts with E, J, or O (in English). Take the photos of the object from four different perspectives: top right, top left, top rear, top front of the object.
 
@@ -26,5 +25,17 @@ From the object or image that I had from the previous task, in this task we were
 6. The shape as shown in another selected photo is rendered on the right side of the Canvas: Located in the clip space between X = 0.0 and X = 1.0 axes.  
 7. The rendering result on the right side of the Canvas is animated vertically, bouncing back between the top and the bottom walls of the Canvas, with a speed of 0.0xxx units, where xxx is the last three digits of the NRP.  
 8. Do not forget to commit and push the changes.
+# Assignment 3
+
+1. Create a 3D definition of the object being photographed in your very first assignment.
+2. Draw the object twice—on the left and on the right half of the canvas—with the two perspectives corresponding to the two photos selected in the previous assignment.
+3. Add a little cube in the center of canvas, right between the two objects.
+4. Set the cube to glow white and become a light source.
+5. Add an ambient effect with an intensity of 0.abc to both objects, where the value of abc is the last three digits of your Student ID plus 200.
+6. Add a diffuse effect to both objects. 
+7. Add a plastic specular effect for the left object. 
+8. Add a metal specular effect for the object on the right. 
+9. Set the cube so that it can be moved upward with the W key-button and downward with the S key-button. 
+10. Set the camera to move leftward and rightward linearly (not orbitally) using the A and D key-buttons.
 
 The result of the task can be seen in <a href = "https://cg2021e.github.io/assignment-1-hasnarof/" target="_blank"> here </a>
