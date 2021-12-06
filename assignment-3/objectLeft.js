@@ -1,0 +1,7 @@
+let objectLeft = [
+
+]
+
+let indicesObjectLeft = [
+
+]

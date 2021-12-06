@@ -5,22 +5,25 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <link rel="shortcut icon" href="../assets/logo.png" type="image/x-icon"> -->
     <title>Assignment 3 | assignment-1-hasnarof</title>
-    <!-- <script type="text/javascript" src="main.js"></script> -->
-    <script type="module" src="main.js"></script>
+    <script src="./gl-matrix-min.js" type="text/javascript"></script>
+    <script src="./main.js" type="text/javascript"></script>
+    <script src="./objectLeft.js" type="text/javascript"></script>
+    <script src="./objectRight.js" type="text/javascript"></script>
+    <script src="./objectLightT.js" type="text/javascript"></script>
 </head>
+
 <style>
-    #canvas {
+    #Canvas{
         position: absolute;
         top: 50%;
         left: 50%;
-        transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%); 
     }
 </style>
-
-<body>
-    <canvas id="canvas" width="700" height="700" style=" border: 3px solid rgb(112, 76, 30);
-    background-color: yellow;">
+<body onload="main()">
+    <canvas id="Canvas" width="700" height="700" style=" border: 5px solid rgb(110, 106, 106);">
     </canvas>
 </body>
 
