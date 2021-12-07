@@ -3,5 +3,5 @@ let objectLeft = [
 ]
 
 let indicesObjectLeft = [
-    
+
 ]
