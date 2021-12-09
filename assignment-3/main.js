@@ -7,6 +7,8 @@ function main() {
     var y_cube = [...objectLight];
 	var vertices = [];
 
+  console.log(indicesObjectLeft.length)
+
 	var indices = [...indicesObjectRight, ...indicesObjectLeft, ...indicesObjectLight];
 
 	// Create a linked-list for storing the vertices data
@@ -191,7 +193,7 @@ function main() {
 		"uAmbientIntensity"
 	);
 	gl.uniform3fv(uLightConstant, [1.0, 1.0, 1.0]); // white light
-	gl.uniform1f(uAmbientIntensity, 0.376); // light intensity: 176 (NRP) + 200 = 376 * 100%
+	gl.uniform1f(uAmbientIntensity, 0.203); // light intensity: 003 (NRP) + 200 = 376 * 100%
 	// var uLightDirection = gl.getUniformLocation(shaderProgram, "uLightDirection");
 	// gl.uniform3fv(uLightDirection, [2.0, 0.0, 0.0]);    // light comes from the right side
 	var uLightPosition = gl.getUniformLocation(shaderProgram, "uLightPosition");
@@ -242,7 +244,8 @@ function main() {
 	document.addEventListener("keydown", onKeyPressed, false);
 
 	function render() {
-        vertices = [...objectRight, ...objectLeft, ...y_cube];
+        // vertices = [...objectRight, ...objectLeft, ...y_cube];
+        vertices = [...objectLeft, ...objectRight, ...y_cube];
 		gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
 		gl.bufferData(
 			gl.ARRAY_BUFFER,
@@ -266,3 +269,4 @@ function main() {
 	}
 	requestAnimationFrame(render);
 }
+
