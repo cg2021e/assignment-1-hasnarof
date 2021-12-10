@@ -4,12 +4,11 @@ function main() {
 	var gl = canvas.getContext("webgl"); // The brush and the paints
 
 	// Define vertices data consisting of position and color properties
-    var y_cube = [...objectLight];
+    // var y_cube = [...objectLight];
 	var vertices = [];
 
-  console.log(indicesObjectLeft.length)
-
-	var indices = [...indicesObjectRight, ...indicesObjectLeft, ...indicesObjectLight];
+	// var indices = [...indicesObjectRight, ...indicesObjectLeft, ...indicesObjectLight];
+	var indices = [...indicesObjectRight, ...indicesObjectLeft];
 
 	// Create a linked-list for storing the vertices data
 	var vertexBuffer = gl.createBuffer();
@@ -206,53 +205,10 @@ function main() {
 	);
 	gl.uniform3fv(uViewerPosition, camera);
 
-	function onKeyPressed(event) {
-		if (event.keyCode == 87) {
-			for (let i = 0; i < y_cube.length; i += 10) {
-				y_cube[i + 1] += 0.04;
-				lightPosition[1] += 0.04 * 1 / 20;
-				console.log("Test");
-			}
-		} else if (event.keyCode == 83) {
-			for (let i = 0; i < y_cube.length; i += 10) {
-				y_cube[i + 1] -= 0.04;
-				lightPosition[1] -= 0.04 * 1 / 20;
-			}
-		} else if (event.keyCode == 65) {
-			camera[0] -= 0.04;
-			camNow[0] -= 0.04;
-			glMatrix.mat4.lookAt(
-				view,
-				camera, // camera position
-				camNow, // the point where camera looks at
-				[0, 1, 0] // up vector of the camera
-			);
-			gl.uniformMatrix4fv(uView, false, view);
-		} else if (event.keyCode == 68) {
-			camera[0] += 0.04;
-			camNow[0] += 0.04;
-			glMatrix.mat4.lookAt(
-				view,
-				camera, // camera position
-				camNow, // the point where camera looks at
-				[0, 1, 0] // up vector of the camera
-			);
-			gl.uniformMatrix4fv(uView, false, view);
-		}
-	}
-
-	document.addEventListener("keydown", onKeyPressed, false);
-
 	function render() {
         // vertices = [...objectRight, ...objectLeft, ...y_cube];
-        vertices = [...objectLeft, ...objectRight, ...y_cube];
-		gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-		gl.bufferData(
-			gl.ARRAY_BUFFER,
-			new Float32Array(vertices),
-			gl.STATIC_DRAW
-		);
-		gl.uniform3fv(uLightPosition, lightPosition);
+        vertices = [...objectLeft, ...objectRight];
+		
 		// Init the model matrix
 		var model = glMatrix.mat4.create();
 		gl.uniformMatrix4fv(uModel, false, model);
