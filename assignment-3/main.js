@@ -4,11 +4,10 @@ function main() {
 	var gl = canvas.getContext("webgl"); // The brush and the paints
 
 	// Define vertices data consisting of position and color properties
-    // var y_cube = [...objectLight];
+    var y_cube = [...objectLight];
 	var vertices = [];
 
-	// var indices = [...indicesObjectRight, ...indicesObjectLeft, ...indicesObjectLight];
-	var indices = [...indicesObjectRight, ...indicesObjectLeft];
+	var indices = [...indicesObjectRight, ...indicesObjectLeft, ...indicesObjectLight, ...indicesObjectPlane];
 
 	// Create a linked-list for storing the vertices data
 	var vertexBuffer = gl.createBuffer();
@@ -207,7 +206,16 @@ function main() {
 
 	function render() {
         // vertices = [...objectRight, ...objectLeft, ...y_cube];
-        vertices = [...objectLeft, ...objectRight];
+        // vertices = [...objectLeft, ...objectRight, ...y_cube];
+        vertices = [...objectLeft, ...objectRight, ...y_cube, ...objectPlane];
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array(vertices),
+      gl.STATIC_DRAW
+    );
+    gl.uniform3fv(uLightPosition, lightPosition);
 		
 		// Init the model matrix
 		var model = glMatrix.mat4.create();
