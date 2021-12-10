@@ -1,7 +1,0 @@
-let objectLeft = [
-
-]
-
-let indicesObjectLeft = [
-    
-]
