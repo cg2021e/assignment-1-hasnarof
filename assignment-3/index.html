@@ -2,33 +2,34 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- <link rel="shortcut icon" href="../assets/logo.png" type="image/x-icon"> -->
-    <title>My Lovely WebGL - 05111940000003</title>
-    <script src="./gl-matrix-min.js" type="text/javascript"></script>
-    <script src="./main.js" type="text/javascript"></script>
-    <script src="./objectLeft.js" type="text/javascript"></script>
-    <script src="./objectRight.js" type="text/javascript"></script>
-    <script src="./objectLight.js" type="text/javascript"></script>
-    <script src="./objectPlane.js" type="text/javascript"></script>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- <link rel="shortcut icon" href="../assets/logo.png" type="image/x-icon"> -->
+  <title>My Lovely WebGL - 05111940000003</title>
+  <!-- <script src="./gl-matrix-min.js" type="text/javascript"></script> -->
+  <script type="module" src="./main.js" type="text/javascript"></script>
+  <!-- <script src="./objectLeft.js" type="text/javascript"></script> -->
+  <!-- <script src="./objectRight.js" type="text/javascript"></script> -->
+  <!-- <script src="./objectLight.js" type="text/javascript"></script> -->
+  <!-- <script src="./objectPlane.js" type="text/javascript"></script> -->
 </head>
 
 <style>
-    #Canvas{
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%); 
-    }
+  #Canvas {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
 </style>
-<body onload="main()">
-    <!-- <div style="display:flex; justify-content:center">
+
+<body>
+  <!-- <div style="display:flex; justify-content:center">
       <p style="color: rgb(218, 167, 37); font-weight:bold; position: absolute; z-index: 100; text-align: center">Press W and S to move the cube up and down, press A and D to move the view left and right.</p>
     </div> -->
-    <canvas id="Canvas" width="700" height="700" style=" border: 5px solid rgb(254, 207, 68);">
-    </canvas>
+  <canvas id="Canvas" width="700" height="700" style=" border: 5px solid rgb(254, 207, 68);">
+  </canvas>
 </body>
 
 </html>

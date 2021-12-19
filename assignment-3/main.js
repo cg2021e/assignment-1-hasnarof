@@ -1,4 +1,16 @@
-function main() {
+// import { mat4, mat3, vec3, quat } from "./gl-matrix-min.js";
+import { mat4, mat3, vec3, quat } from "./gl-matrix/index.js";
+import { verticesJar } from "./vertices.js";
+import { objectLeft, indicesObjectLeft } from "./objectLeft.js";
+import { objectRight, indicesObjectRight } from "./objectRight.js";
+import { objectLight, indicesObjectLight } from "./objectLight.js";
+import { objectPlane, indicesObjectPlane } from "./objectPlane.js";
+import { sourceVertexShader } from "./sourceVertexShader.js";
+import { sourceFragmentShader } from "./sourceFragmentShader.js";
+import { shaderFragment } from "./shaderFragment.js";
+import { shaderVertex } from "./shaderVertex.js";
+
+window.onload = () => {
   //Access the canvas through DOM: Document Object Model
   var canvas = document.getElementById("Canvas"); // The paper
   var gl = canvas.getContext("webgl"); // The brush and the paints
@@ -28,69 +40,11 @@ function main() {
     gl.STATIC_DRAW
   );
 
-  var vertexShaderSource = `
-        attribute vec3 aPosition;
-        attribute vec3 aColor;
-        attribute vec3 aNormal;
-        attribute float aShininessConstant;
-        varying vec3 vColor;
-        varying vec3 vNormal;
-        varying vec3 vPosition;
-        varying float vShininessConstant;
-        uniform mat4 uModel;
-        uniform mat4 uView;
-        uniform mat4 uProjection;
-        void main() {
-            gl_Position = uProjection * uView * uModel * (vec4(aPosition * 2. / 3., 1.5));
-            vColor = aColor;
-            vNormal = aNormal;
-            vPosition = (uModel * (vec4(aPosition * 2. / 3., 1.5))).xyz;
-            vShininessConstant = aShininessConstant;
-        }
-    `;
-
-  var fragmentShaderSource = `
-        precision mediump float;
-        varying vec3 vColor;
-        varying vec3 vNormal;
-        varying vec3 vPosition;
-        varying float vShininessConstant;
-        uniform vec3 uLightConstant;        // It represents the light color
-        uniform float uAmbientIntensity;    // It represents the light intensity
-        // uniform vec3 uLightDirection;
-        uniform vec3 uLightPosition;
-        uniform mat3 uNormalModel;
-        uniform vec3 uViewerPosition;
-        void main() {
-            vec3 ambient = uLightConstant * uAmbientIntensity;
-            vec3 lightDirection = uLightPosition - vPosition;
-            vec3 normalizedLight = normalize(lightDirection);  // [2., 0., 0.] becomes a unit vector [1., 0., 0.]
-            vec3 normalizedNormal = normalize(uNormalModel * vNormal);
-            float cosTheta = dot(normalizedNormal, normalizedLight);
-            vec3 diffuse = vec3(0., 0., 0.);
-            if (cosTheta > 0.) {
-                float diffuseIntensity = cosTheta;
-                diffuse = uLightConstant * diffuseIntensity;
-            }
-            vec3 reflector = reflect(-lightDirection, normalizedNormal);
-            vec3 normalizedReflector = normalize(reflector);
-            vec3 normalizedViewer = normalize(uViewerPosition - vPosition);
-            float cosPhi = dot(normalizedReflector, normalizedViewer);
-            vec3 specular = vec3(0., 0., 0.);
-            if (cosPhi > 0.) {
-                float specularIntensity = pow(cosPhi, vShininessConstant); 
-                specular = uLightConstant * specularIntensity;
-            }
-            vec3 phong = ambient + diffuse + specular;
-            gl_FragColor = vec4(phong * vColor, 1.);
-        }
-    `;
-
   // Create .c in GPU
   var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-  gl.shaderSource(vertexShader, vertexShaderSource);
+  gl.shaderSource(vertexShader, shaderVertex);
   var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-  gl.shaderSource(fragmentShader, fragmentShaderSource);
+  gl.shaderSource(fragmentShader, shaderFragment);
 
   // Compile .c into .o
   gl.compileShader(vertexShader);
@@ -167,8 +121,8 @@ function main() {
   var uProjection = gl.getUniformLocation(shaderProgram, "uProjection");
 
   // Set the projection matrix in the vertex shader
-  var projection = glMatrix.mat4.create();
-  glMatrix.mat4.perspective(
+  var projection = mat4.create();
+  mat4.perspective(
     projection,
     Math.PI / 3, // field of view
     1, // ratio
@@ -178,10 +132,10 @@ function main() {
   gl.uniformMatrix4fv(uProjection, false, projection);
 
   // Set the view matrix in the vertex shader
-  var view = glMatrix.mat4.create();
+  var view = mat4.create();
   var camera = [0, 0, 3];
   var camNow = [0, 0, 0];
-  glMatrix.mat4.lookAt(
+  mat4.lookAt(
     view,
     camera, // camera position
     camNow, // the point where camera looks at
@@ -216,11 +170,11 @@ function main() {
     gl.uniform3fv(uLightPosition, lightPosition);
 
     // Init the model matrix
-    var model = glMatrix.mat4.create();
+    var model = mat4.create();
     gl.uniformMatrix4fv(uModel, false, model);
     // Set the model matrix for normal vector
-    var normalModel = glMatrix.mat3.create();
-    glMatrix.mat3.normalFromMat4(normalModel, model);
+    var normalModel = mat3.create();
+    mat3.normalFromMat4(normalModel, model);
     gl.uniformMatrix3fv(uNormalModel, false, normalModel);
     // Reset the frame buffer
     gl.enable(gl.DEPTH_TEST);
@@ -230,4 +184,4 @@ function main() {
     requestAnimationFrame(render);
   }
   requestAnimationFrame(render);
-}
+};
