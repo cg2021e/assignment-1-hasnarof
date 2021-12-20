@@ -93,7 +93,7 @@ window.onload = () => {
 
   const uShininessConstant = gl.getUniformLocation(shaderProgram, "uShininessConstant");
 
-  const scale = 0.8;
+  const scale = 0.6;
   const uScale = gl.getUniformLocation(shaderProgram, "uScale");
   gl.uniform1f(uScale, scale);
 
@@ -103,10 +103,10 @@ window.onload = () => {
   const models = [glMatrix.mat4.create(), glMatrix.mat4.create(), glMatrix.mat4.create(), glMatrix.mat4.create()];
 
   // model for left
-  glMatrix.mat4.translate(models[0], models[0], [-0.7, 0, 0]);
+  glMatrix.mat4.translate(models[0], models[0], [-0.8, 0, 0]);
 
   // model for right
-  glMatrix.mat4.translate(models[1], models[1], [0.7, 0, 0]);
+  glMatrix.mat4.translate(models[1], models[1], [0.8, 0, 0]);
   glMatrix.mat4.rotateY(models[1], models[1], -Math.PI / 2);
 
   // model for cube;
