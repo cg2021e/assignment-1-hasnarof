@@ -1,6 +1,8 @@
 // import { mat4, mat3, vec3, quat } from "./gl-matrix-min.js";
 // import { mat4, mat3, vec3, quat } from "./gl-matrix/index.js";
 import { verticesJar, indicesJar } from "./objectJar.js";
+import { verticesPlane, indicesPlane } from "./objectPlane.js";
+import { verticesCube, indicesCube } from "./objectCube.js";
 import { sourceVertexShader } from "./sourceVertexShader.js";
 import { sourceFragmentShader } from "./sourceFragmentShader.js";
 import { mergeIndices, mergeVertices, getAllVerticesWithSurfaceNormal } from "./utils.js";
@@ -22,8 +24,8 @@ window.onload = () => {
   const verticeAndIndices = [
     [verticesJar, indicesJar],
     [verticesJar, indicesJar],
-    // [verticesCube, indicesCube],
-    // [verticesPlane, indicesPlane],
+    [verticesCube, indicesCube],
+    [verticesPlane, indicesPlane],
   ];
 
   const [indicesCount] = mergeIndices(...verticeAndIndices.map((elem) => elem[1]));
@@ -97,8 +99,9 @@ window.onload = () => {
   const uScale = gl.getUniformLocation(shaderProgram, "uScale");
   gl.uniform1f(uScale, scale);
 
-  const camera = [0, 1, 3];
-  const lightCube = [0, 0, 1];
+  const camera = [0, 0, 3];
+  // const camera = [-1, 0, 3];
+  const lightCube = [0, 0, 0];
 
   const models = [glMatrix.mat4.create(), glMatrix.mat4.create(), glMatrix.mat4.create(), glMatrix.mat4.create()];
 
@@ -118,6 +121,7 @@ window.onload = () => {
 
   const view = glMatrix.mat4.create();
   glMatrix.mat4.lookAt(view, camera, [camera[0], -0.1, 0], [0, 1, 0]);
+  // glMatrix.mat4.lookAt(view, camera, [0.5, 0, 0], [0, 0, 0]);
   gl.uniformMatrix4fv(uView, false, view);
   gl.uniform3fv(uViewerPosition, camera);
 
@@ -125,9 +129,49 @@ window.onload = () => {
 
   // constant for each model
   const shininessConstants = [5, 200, 0, 0];
-  const ambientIntensities = [0.34, 0.34, 1, 1];
+  const ambientIntensities = [0.203, 0.203, 1, 1];
+  // const ambientIntensities = [0, 0, 0, 0];
+
+  const cameraSpeed = 0.01;
+  let cameraMoveDir = 0; // 0 - nothing, 1 - upward, -1 - downward
+
+  const lightCubeSpeed = 0.01;
+  let lightCubeMoveDir = 0; // 0 - nothing, 1 - right, -1 - left
+
+  window.onkeydown = (e) => {
+    if (e.code === "KeyD") cameraMoveDir = 1;
+    else if (e.code === "KeyA") cameraMoveDir = -1;
+
+    if (e.code === "KeyW") lightCubeMoveDir = 1;
+    else if (e.code === "KeyS") lightCubeMoveDir = -1;
+
+    // Uncomment these to be able to move the light cube forward/bacward and left/right
+    // if (e.code === 'ArrowUp') lightCube[2] -= 0.05;
+    // if (e.code === 'ArrowDown') lightCube[2] += 0.05;
+    // if (e.code === 'ArrowLeft') lightCube[0] -= 0.05;
+    // if (e.code === 'ArrowRight') lightCube[0] += 0.05;
+  };
+
+  window.onkeyup = (e) => {
+    if (e.code === "KeyD" || e.code === "KeyA") cameraMoveDir = 0;
+
+    if (e.code === "KeyW" || e.code === "KeyS") lightCubeMoveDir = 0;
+  };
 
   function render() {
+    camera[0] += cameraMoveDir * cameraSpeed;
+    const view = glMatrix.mat4.create();
+    glMatrix.mat4.lookAt(view, camera, [camera[0], -0.1, 0], [0, 1, 0]);
+    gl.uniformMatrix4fv(uView, false, view);
+    gl.uniform3fv(uViewerPosition, camera);
+
+    lightCube[1] += lightCubeMoveDir * lightCubeSpeed;
+    gl.uniform3fv(uLightPosition, lightCube);
+
+    // model for cube
+    models[2] = glMatrix.mat4.create();
+    glMatrix.mat4.translate(models[2], models[2], lightCube);
+
     gl.enable(gl.DEPTH_TEST);
     gl.clearColor(0.9, 0.9, 0.9, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
