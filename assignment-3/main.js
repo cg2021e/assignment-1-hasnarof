@@ -1,187 +1,154 @@
 // import { mat4, mat3, vec3, quat } from "./gl-matrix-min.js";
-import { mat4, mat3, vec3, quat } from "./gl-matrix/index.js";
-import { verticesJar } from "./vertices.js";
-import { objectLeft, indicesObjectLeft } from "./objectLeft.js";
-import { objectRight, indicesObjectRight } from "./objectRight.js";
-import { objectLight, indicesObjectLight } from "./objectLight.js";
-import { objectPlane, indicesObjectPlane } from "./objectPlane.js";
+// import { mat4, mat3, vec3, quat } from "./gl-matrix/index.js";
+import { verticesJar, indicesJar } from "./objectJar.js";
 import { sourceVertexShader } from "./sourceVertexShader.js";
 import { sourceFragmentShader } from "./sourceFragmentShader.js";
-import { shaderFragment } from "./shaderFragment.js";
-import { shaderVertex } from "./shaderVertex.js";
+import { mergeIndices, mergeVertices, getAllVerticesWithSurfaceNormal } from "./utils.js";
+
+// import { shaderFragment } from "./shaderFragment.js";
+// import { shaderVertex } from "./shaderVertex.js";
 
 window.onload = () => {
-  //Access the canvas through DOM: Document Object Model
-  var canvas = document.getElementById("Canvas"); // The paper
-  var gl = canvas.getContext("webgl"); // The brush and the paints
+  /**
+   *  @type {HTMLCanvasElement} canvas
+   */
+  const canvas = document.getElementById("Canvas");
 
-  // Define vertices data consisting of position and color properties
-  var y_cube = [...objectLight];
-  var vertices = [];
+  /**
+   *  @type {WebGLRenderingContext} gl
+   */
+  const gl = canvas.getContext("webgl");
 
-  var indices = [
-    ...indicesObjectRight,
-    ...indicesObjectLeft,
-    ...indicesObjectLight,
-    ...indicesObjectPlane,
+  const verticeAndIndices = [
+    [verticesJar, indicesJar],
+    [verticesJar, indicesJar],
+    // [verticesCube, indicesCube],
+    // [verticesPlane, indicesPlane],
   ];
 
-  // Create a linked-list for storing the vertices data
-  var vertexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+  const [indicesCount] = mergeIndices(...verticeAndIndices.map((elem) => elem[1]));
+  const vertices = mergeVertices(getAllVerticesWithSurfaceNormal(...verticeAndIndices));
+
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
 
-  // Create a linked-list for storing the indices data
-  var indexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-  gl.bufferData(
-    gl.ELEMENT_ARRAY_BUFFER,
-    new Uint16Array(indices),
-    gl.STATIC_DRAW
-  );
-
-  // Create .c in GPU
-  var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-  gl.shaderSource(vertexShader, shaderVertex);
-  var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-  gl.shaderSource(fragmentShader, shaderFragment);
-
-  // Compile .c into .o
+  const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+  gl.shaderSource(vertexShader, sourceVertexShader);
   gl.compileShader(vertexShader);
+
+  const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+  gl.shaderSource(fragmentShader, sourceFragmentShader);
   gl.compileShader(fragmentShader);
-  let compiled = gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS);
-  if (!compiled) {
-    console.error(gl.getShaderInfoLog(vertexShader));
-  }
 
-  // Prepare a .exe shell (shader program)
-  var shaderProgram = gl.createProgram();
-
-  // Put the two .o files into the shell
+  const shaderProgram = gl.createProgram();
   gl.attachShader(shaderProgram, vertexShader);
   gl.attachShader(shaderProgram, fragmentShader);
-
-  // Link the two .o files, so together they can be a runnable program/context.
   gl.linkProgram(shaderProgram);
 
-  // Start using the context (analogy: start using the paints and the brushes)
+  // check if shader error
+  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+    const info = gl.getProgramInfoLog(shaderProgram);
+    const vertexShaderInfo = gl.getShaderInfoLog(vertexShader);
+    const fragmentShaderInfo = gl.getShaderInfoLog(fragmentShader);
+
+    console.log(info);
+    console.log("Vertex: " + vertexShaderInfo);
+    console.log("Fragment: " + fragmentShaderInfo);
+
+    throw new Error("Could not compile WebGL program.");
+  }
+
   gl.useProgram(shaderProgram);
 
-  // Teach the computer how to collect
-  //  the positional values from ARRAY_BUFFER
-  //  to each vertex being processed
-  var aPosition = gl.getAttribLocation(shaderProgram, "aPosition");
-  gl.vertexAttribPointer(
-    aPosition,
-    3,
-    gl.FLOAT,
-    false,
-    10 * Float32Array.BYTES_PER_ELEMENT,
-    0
-  );
+  const aPosition = gl.getAttribLocation(shaderProgram, "aPosition");
+  gl.vertexAttribPointer(aPosition, 3, gl.FLOAT, false, 9 * Float32Array.BYTES_PER_ELEMENT, 0);
   gl.enableVertexAttribArray(aPosition);
-  var aColor = gl.getAttribLocation(shaderProgram, "aColor");
-  gl.vertexAttribPointer(
-    aColor,
-    3,
-    gl.FLOAT,
-    false,
-    10 * Float32Array.BYTES_PER_ELEMENT,
-    6 * Float32Array.BYTES_PER_ELEMENT
-  );
+
+  const aColor = gl.getAttribLocation(shaderProgram, "aColor");
+  gl.vertexAttribPointer(aColor, 3, gl.FLOAT, false, 9 * Float32Array.BYTES_PER_ELEMENT, 3 * Float32Array.BYTES_PER_ELEMENT);
   gl.enableVertexAttribArray(aColor);
-  var aNormal = gl.getAttribLocation(shaderProgram, "aNormal");
-  gl.vertexAttribPointer(
-    aNormal,
-    3,
-    gl.FLOAT,
-    false,
-    10 * Float32Array.BYTES_PER_ELEMENT,
-    3 * Float32Array.BYTES_PER_ELEMENT
-  );
+
+  const aNormal = gl.getAttribLocation(shaderProgram, "aNormal");
+  gl.vertexAttribPointer(aNormal, 3, gl.FLOAT, false, 9 * Float32Array.BYTES_PER_ELEMENT, 6 * Float32Array.BYTES_PER_ELEMENT);
   gl.enableVertexAttribArray(aNormal);
 
-  var aShininessConstant = gl.getAttribLocation(
-    shaderProgram,
-    "aShininessConstant"
-  );
-  gl.vertexAttribPointer(
-    aShininessConstant,
-    1,
-    gl.FLOAT,
-    false,
-    10 * Float32Array.BYTES_PER_ELEMENT,
-    9 * Float32Array.BYTES_PER_ELEMENT
-  );
-  gl.enableVertexAttribArray(aShininessConstant);
+  const uModel = gl.getUniformLocation(shaderProgram, "uModel");
+  const uView = gl.getUniformLocation(shaderProgram, "uView");
+  const uProjection = gl.getUniformLocation(shaderProgram, "uProjection");
 
-  // Connect the uniform transformation matrices
-  var uModel = gl.getUniformLocation(shaderProgram, "uModel");
-  var uView = gl.getUniformLocation(shaderProgram, "uView");
-  var uProjection = gl.getUniformLocation(shaderProgram, "uProjection");
-
-  // Set the projection matrix in the vertex shader
-  var projection = mat4.create();
-  mat4.perspective(
-    projection,
-    Math.PI / 3, // field of view
-    1, // ratio
-    0.5, // near clip
-    10 // far clip
-  );
+  const projection = glMatrix.mat4.create();
+  glMatrix.mat4.perspective(projection, Math.PI / 3, 1, 0.5, 10);
   gl.uniformMatrix4fv(uProjection, false, projection);
 
-  // Set the view matrix in the vertex shader
-  var view = mat4.create();
-  var camera = [0, 0, 3];
-  var camNow = [0, 0, 0];
-  mat4.lookAt(
-    view,
-    camera, // camera position
-    camNow, // the point where camera looks at
-    [0, 1, 0] // up vector of the camera
-  );
-  gl.uniformMatrix4fv(uView, false, view);
+  const uLightConstant = gl.getUniformLocation(shaderProgram, "uLightConstant");
+  const uAmbientIntensity = gl.getUniformLocation(shaderProgram, "uAmbientIntensity");
+  gl.uniform3fv(uLightConstant, [1, 1, 1]);
 
-  // Define the lighting and shading
-  var uLightConstant = gl.getUniformLocation(shaderProgram, "uLightConstant");
-  var uAmbientIntensity = gl.getUniformLocation(
-    shaderProgram,
-    "uAmbientIntensity"
-  );
-  gl.uniform3fv(uLightConstant, [1.0, 1.0, 1.0]); // white light
-  gl.uniform1f(uAmbientIntensity, 0.203); // light intensity: 003 (NRP) + 200 = 376 * 100%
-  // var uLightDirection = gl.getUniformLocation(shaderProgram, "uLightDirection");
-  // gl.uniform3fv(uLightDirection, [2.0, 0.0, 0.0]);    // light comes from the right side
-  var uLightPosition = gl.getUniformLocation(shaderProgram, "uLightPosition");
-  var lightPosition = [0.0, 0.0, 0.0];
-  gl.uniform3fv(uLightPosition, lightPosition);
-  var uNormalModel = gl.getUniformLocation(shaderProgram, "uNormalModel");
-  var uViewerPosition = gl.getUniformLocation(shaderProgram, "uViewerPosition");
+  const uLightPosition = gl.getUniformLocation(shaderProgram, "uLightPosition");
+
+  const uNormalModel = gl.getUniformLocation(shaderProgram, "uNormalModel");
+
+  const uViewerPosition = gl.getUniformLocation(shaderProgram, "uViewerPosition");
+
+  const uShininessConstant = gl.getUniformLocation(shaderProgram, "uShininessConstant");
+
+  const scale = 0.8;
+  const uScale = gl.getUniformLocation(shaderProgram, "uScale");
+  gl.uniform1f(uScale, scale);
+
+  const camera = [0, 1, 3];
+  const lightCube = [0, 0, 1];
+
+  const models = [glMatrix.mat4.create(), glMatrix.mat4.create(), glMatrix.mat4.create(), glMatrix.mat4.create()];
+
+  // model for left
+  glMatrix.mat4.translate(models[0], models[0], [-0.7, 0, 0]);
+
+  // model for right
+  glMatrix.mat4.translate(models[1], models[1], [0.7, 0, 0]);
+  glMatrix.mat4.rotateY(models[1], models[1], -Math.PI / 2);
+
+  // model for cube;
+  glMatrix.mat4.translate(models[2], models[2], lightCube);
+
+  // model for plane
+  const bottomVertices = Math.min(...verticesJar.map((elem) => elem[1]));
+  glMatrix.mat4.translate(models[3], models[3], [0, bottomVertices * scale, 0]);
+
+  const view = glMatrix.mat4.create();
+  glMatrix.mat4.lookAt(view, camera, [camera[0], -0.1, 0], [0, 1, 0]);
+  gl.uniformMatrix4fv(uView, false, view);
   gl.uniform3fv(uViewerPosition, camera);
 
+  gl.uniform3fv(uLightPosition, lightCube);
+
+  // constant for each model
+  const shininessConstants = [5, 200, 0, 0];
+  const ambientIntensities = [0.34, 0.34, 1, 1];
+
   function render() {
-    // vertices = [...objectRight, ...objectLeft, ...y_cube];
-    // vertices = [...objectLeft, ...objectRight, ...y_cube];
-    vertices = [...objectLeft, ...objectRight, ...y_cube, ...objectPlane];
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-    gl.uniform3fv(uLightPosition, lightPosition);
-
-    // Init the model matrix
-    var model = mat4.create();
-    gl.uniformMatrix4fv(uModel, false, model);
-    // Set the model matrix for normal vector
-    var normalModel = mat3.create();
-    mat3.normalFromMat4(normalModel, model);
-    gl.uniformMatrix3fv(uNormalModel, false, normalModel);
-    // Reset the frame buffer
     gl.enable(gl.DEPTH_TEST);
-    gl.clearColor(0.1, 0.1, 0.1, 1.0);
+    gl.clearColor(0.9, 0.9, 0.9, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+
+    let count = 0;
+    indicesCount.forEach((v, i) => {
+      gl.uniformMatrix4fv(uModel, false, models[i]);
+
+      const normalModel = glMatrix.mat3.create();
+      glMatrix.mat3.normalFromMat4(normalModel, models[i]);
+      gl.uniformMatrix3fv(uNormalModel, false, normalModel);
+
+      gl.uniform1f(uShininessConstant, shininessConstants[i]);
+      gl.uniform1f(uAmbientIntensity, ambientIntensities[i]);
+
+      gl.drawArrays(gl.TRIANGLES, count, indicesCount[i]);
+      count += indicesCount[i];
+    });
+
     requestAnimationFrame(render);
   }
+
   requestAnimationFrame(render);
 };
