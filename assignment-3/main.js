@@ -95,6 +95,8 @@ window.onload = () => {
 
   const uShininessConstant = gl.getUniformLocation(shaderProgram, "uShininessConstant");
 
+  const uIsOn = gl.getUniformLocation(shaderProgram, "uIsOn");
+
   const scale = 0.6;
   const uScale = gl.getUniformLocation(shaderProgram, "uScale");
   gl.uniform1f(uScale, scale);
@@ -132,46 +134,7 @@ window.onload = () => {
   const ambientIntensities = [0.203, 0.203, 1, 1];
   // const ambientIntensities = [0, 0, 0, 0];
 
-  const cameraSpeed = 0.01;
-  let cameraMoveDir = 0; // 0 - nothing, 1 - upward, -1 - downward
-
-  const lightCubeSpeed = 0.01;
-  let lightCubeMoveDir = 0; // 0 - nothing, 1 - right, -1 - left
-
-  window.onkeydown = (e) => {
-    if (e.code === "KeyD") cameraMoveDir = 1;
-    else if (e.code === "KeyA") cameraMoveDir = -1;
-
-    if (e.code === "KeyW") lightCubeMoveDir = 1;
-    else if (e.code === "KeyS") lightCubeMoveDir = -1;
-
-    // Uncomment these to be able to move the light cube forward/bacward and left/right
-    // if (e.code === 'ArrowUp') lightCube[2] -= 0.05;
-    // if (e.code === 'ArrowDown') lightCube[2] += 0.05;
-    // if (e.code === 'ArrowLeft') lightCube[0] -= 0.05;
-    // if (e.code === 'ArrowRight') lightCube[0] += 0.05;
-  };
-
-  window.onkeyup = (e) => {
-    if (e.code === "KeyD" || e.code === "KeyA") cameraMoveDir = 0;
-
-    if (e.code === "KeyW" || e.code === "KeyS") lightCubeMoveDir = 0;
-  };
-
   function render() {
-    camera[0] += cameraMoveDir * cameraSpeed;
-    const view = glMatrix.mat4.create();
-    glMatrix.mat4.lookAt(view, camera, [camera[0], -0.1, 0], [0, 1, 0]);
-    gl.uniformMatrix4fv(uView, false, view);
-    gl.uniform3fv(uViewerPosition, camera);
-
-    lightCube[1] += lightCubeMoveDir * lightCubeSpeed;
-    gl.uniform3fv(uLightPosition, lightCube);
-
-    // model for cube
-    models[2] = glMatrix.mat4.create();
-    glMatrix.mat4.translate(models[2], models[2], lightCube);
-
     gl.enable(gl.DEPTH_TEST);
     gl.clearColor(0.9, 0.9, 0.9, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
