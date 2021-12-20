@@ -15,6 +15,8 @@ export const sourceFragmentShader = `
 
     uniform float uShininessConstant;
 
+    uniform bool uIsLightOn;
+
     void main() {
         vec3 ambient = uLightConstant * uAmbientIntensity;
 
@@ -25,7 +27,7 @@ export const sourceFragmentShader = `
         float cosTheta = dot(normalizedNormal, normalizedLight);
 
         vec3 diffuse = vec3(0.0, 0.0, 0.0);
-        if (cosTheta > 0.) {
+        if (cosTheta > 0. && uIsLightOn) {
             diffuse = uLightConstant * cosTheta;
         }
 
@@ -35,7 +37,7 @@ export const sourceFragmentShader = `
         float cosPhi = dot(normalizedReflector, normalizedViewer);
 
         vec3 specular = vec3(0.0, 0.0, 0.0);
-        if (cosPhi > 0.0) {
+        if (cosPhi > 0.0 && uIsLightOn) {
             float specularIntensity = pow(cosPhi, uShininessConstant);
             specular = uLightConstant * specularIntensity;
         }
