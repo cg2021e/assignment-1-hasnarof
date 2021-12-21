@@ -1,14 +1,9 @@
-// import { mat4, mat3, vec3, quat } from "./gl-matrix-min.js";
-// import { mat4, mat3, vec3, quat } from "./gl-matrix/index.js";
 import { verticesJar, indicesJar } from "./objectJar.js";
 import { verticesPlane, indicesPlane } from "./objectPlane.js";
 import { verticesCube, indicesCube } from "./objectCube.js";
 import { sourceVertexShader } from "./sourceVertexShader.js";
 import { sourceFragmentShader } from "./sourceFragmentShader.js";
 import { mergeIndices, mergeVertices, getAllVerticesWithSurfaceNormal } from "./utils.js";
-
-// import { shaderFragment } from "./shaderFragment.js";
-// import { shaderVertex } from "./shaderVertex.js";
 
 window.onload = () => {
   /**
@@ -47,19 +42,6 @@ window.onload = () => {
   gl.attachShader(shaderProgram, vertexShader);
   gl.attachShader(shaderProgram, fragmentShader);
   gl.linkProgram(shaderProgram);
-
-  // check if shader error
-  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-    const info = gl.getProgramInfoLog(shaderProgram);
-    const vertexShaderInfo = gl.getShaderInfoLog(vertexShader);
-    const fragmentShaderInfo = gl.getShaderInfoLog(fragmentShader);
-
-    console.log(info);
-    console.log("Vertex: " + vertexShaderInfo);
-    console.log("Fragment: " + fragmentShaderInfo);
-
-    throw new Error("Could not compile WebGL program.");
-  }
 
   gl.useProgram(shaderProgram);
 
@@ -101,9 +83,10 @@ window.onload = () => {
   const uScale = gl.getUniformLocation(shaderProgram, "uScale");
   gl.uniform1f(uScale, scale);
 
-  const camera = [0, 0, 3];
-  // const camera = [-1, 0, 3];
+  // const camera = [0, 0, 3];
+  const camera = [0, 2, 3];
   const lightCube = [0, 0, 0];
+  // const lightCube = [0, 0, 1];
 
   const models = [glMatrix.mat4.create(), glMatrix.mat4.create(), glMatrix.mat4.create(), glMatrix.mat4.create()];
 
@@ -145,7 +128,7 @@ window.onload = () => {
 
   const cameraRotateSpeed = 0.01;
   let cameraRotateDir = 0; // 0 - nothing, 1 - rotate right, -1 - rotate left
-  let rotation = 0;
+  let cameraRotation = 0;
 
   let isLightOn = true;
   window.addEventListener("keydown", (e) => {
@@ -177,6 +160,63 @@ window.onload = () => {
     if (e.code === "ArrowRight" || e.code === "ArrowLeft") cameraRotateDir = 0;
   });
 
+  let lastPointOnTrackBall, currentPointOnTrackBall;
+  let lastQuat = glMatrix.quat.create();
+  function computeCurrentQuat() {
+    const axisFromCrossProduct = glMatrix.vec3.cross(glMatrix.vec3.create(), lastPointOnTrackBall, currentPointOnTrackBall);
+    const angleFromDotProduct = Math.acos(glMatrix.vec3.dot(lastPointOnTrackBall, currentPointOnTrackBall));
+    const rotationQuat = glMatrix.quat.setAxisAngle(glMatrix.quat.create(), axisFromCrossProduct, angleFromDotProduct);
+    glMatrix.quat.normalize(rotationQuat, rotationQuat);
+    return glMatrix.quat.multiply(glMatrix.quat.create(), rotationQuat, lastQuat);
+  }
+
+  function getProjectionPointOnSurface(point) {
+    const radius = canvas.width / 2;
+    const center = glMatrix.vec3.fromValues(window.innerWidth / 2, window.innerHeight / 2, 0);
+    const pointVector = glMatrix.vec3.subtract(glMatrix.vec3.create(), point, center);
+    pointVector[1] = pointVector[1] * -1;
+    const radius2 = radius * radius;
+    const length2 = pointVector[0] * pointVector[0] + pointVector[1] * pointVector[1];
+    if (length2 <= radius2) pointVector[2] = Math.sqrt(radius2 - length2);
+    else {
+      pointVector[0] *= radius / Math.sqrt(length2);
+      pointVector[1] *= radius / Math.sqrt(length2);
+      pointVector[2] = 0;
+    }
+    return glMatrix.vec3.normalize(glMatrix.vec3.create(), pointVector);
+  }
+
+  const rotation = glMatrix.mat4.create();
+  let dragging;
+
+  document.addEventListener("mousedown", (e) => {
+    const x = e.clientX;
+    const y = e.clientY;
+    const rect = e.target.getBoundingClientRect();
+    if (rect.left <= x && rect.right >= x && rect.top <= y && rect.bottom >= y) {
+      dragging = true;
+    }
+
+    lastPointOnTrackBall = getProjectionPointOnSurface(glMatrix.vec3.fromValues(x, y, 0));
+    currentPointOnTrackBall = lastPointOnTrackBall;
+  });
+
+  document.addEventListener("mouseup", (e) => {
+    dragging = false;
+    if (currentPointOnTrackBall != lastPointOnTrackBall) {
+      lastQuat = computeCurrentQuat();
+    }
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (dragging) {
+      var x = e.clientX;
+      var y = e.clientY;
+      currentPointOnTrackBall = getProjectionPointOnSurface(glMatrix.vec3.fromValues(x, y, 0));
+      glMatrix.mat4.fromQuat(rotation, computeCurrentQuat());
+    }
+  });
+
   function render() {
     gl.enable(gl.DEPTH_TEST);
     gl.clearColor(0.9, 0.9, 0.9, 1.0);
@@ -185,7 +225,7 @@ window.onload = () => {
     lightCube[0] += lightCubeMoveDirX * lightCubeSpeed;
     lightCube[2] += -lightCubeMoveDirZ * lightCubeSpeed;
 
-    rotation += cameraRotateDir * cameraRotateSpeed;
+    cameraRotation += cameraRotateDir * cameraRotateSpeed;
 
     const view = glMatrix.mat4.create();
     const angle = glMatrix.vec3.angle(camera, [0, 0, 0]);
@@ -195,13 +235,14 @@ window.onload = () => {
       camera[1] = Math.cos(angle) * newDistance;
       camera[2] = Math.sin(angle) * newDistance;
     }
-    const curCameraPosition = glMatrix.vec3.rotateY(glMatrix.vec3.create(), camera, [0, 0, 0], rotation);
+    const curCameraPosition = glMatrix.vec3.rotateY(glMatrix.vec3.create(), camera, [0, 0, 0], cameraRotation);
     glMatrix.mat4.lookAt(view, curCameraPosition, [0, 0, 0], [0, 1, 0]);
 
     gl.uniformMatrix4fv(uView, false, view);
     gl.uniform3fv(uViewerPosition, camera);
 
     // model for cube;
+    glMatrix.mat4.multiply(models[2], glMatrix.mat4.create(), rotation);
     glMatrix.mat4.translate(models[2], glMatrix.mat4.create(), lightCube);
 
     gl.uniform3fv(uLightPosition, lightCube);
