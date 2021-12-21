@@ -42,17 +42,19 @@ export const getFaceSurfaceNormal = (vertices, indices) => {
     const u = vertices[indices[1]].map((val, index) => val - vertices[indices[0]][index]);
     const v = vertices[indices[2]].map((val, index) => val - vertices[indices[0]][index]);
 
+    // surfaceNormal[0] = u[1] * v[2] - u[2] * v[1];
     surfaceNormal[0] = -(u[1] * v[2] - u[2] * v[1]);
-    surfaceNormal[1] = -(u[2] * v[0] - u[0] * v[2]);
+    surfaceNormal[1] = u[2] * v[0] - u[0] * v[2];
     surfaceNormal[2] = -(u[0] * v[1] - u[1] * v[0]);
+    // surfaceNormal[2] = u[0] * v[1] - u[1] * v[0];
   } else {
     indices.forEach((val, i) => {
       const curr = vertices[val];
       const next = vertices[indices[(i + 1) % indices.length]];
 
-      surfaceNormal[0] += -((curr[1] - next[1]) * (curr[2] + next[2]));
-      surfaceNormal[1] += -((curr[2] - next[2]) * (curr[0] + next[0]));
-      surfaceNormal[2] += -((curr[0] - next[0]) * (curr[1] + next[1]));
+      surfaceNormal[0] += (curr[1] - next[1]) * (curr[2] + next[2]);
+      surfaceNormal[1] += (curr[2] - next[2]) * (curr[0] + next[0]);
+      surfaceNormal[2] += (curr[0] - next[0]) * (curr[1] + next[1]);
     });
   }
 

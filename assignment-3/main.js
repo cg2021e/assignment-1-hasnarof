@@ -135,18 +135,76 @@ window.onload = () => {
   // const ambientIntensities = [0.203, 0.203, 1, 1];
   // const ambientIntensities = [0, 0, 0, 0];
 
+  const lightCubeSpeed = 0.01;
+  let lightCubeMoveDirX = 0; // 0 - nothing, 1 - right, -1 - left
+  let lightCubeMoveDirZ = 0; // 0 - nothing, 1 - forward (away from screen), -1 - backward
+
+  const zoomSpeed = 0.01;
+  let zoomDir = 0; // 0 - nothing, 1 - zoom in, -1 - zoom out
+  const distanceMin = 1;
+
+  const cameraRotateSpeed = 0.01;
+  let cameraRotateDir = 0; // 0 - nothing, 1 - rotate right, -1 - rotate left
+  let rotation = 0;
+
   let isLightOn = true;
   window.addEventListener("keydown", (e) => {
     if (e.code == "Space") {
       isLightOn = !isLightOn;
       ambientIntensities[2] = isLightOn;
     }
+
+    if (e.code === "KeyD") lightCubeMoveDirX = 1;
+    else if (e.code === "KeyA") lightCubeMoveDirX = -1;
+
+    if (e.code === "KeyW") lightCubeMoveDirZ = 1;
+    else if (e.code === "KeyS") lightCubeMoveDirZ = -1;
+
+    if (e.code === "ArrowUp") zoomDir = 1;
+    else if (e.code === "ArrowDown") zoomDir = -1;
+
+    if (e.code === "ArrowRight") cameraRotateDir = 1;
+    else if (e.code === "ArrowLeft") cameraRotateDir = -1;
+  });
+
+  window.addEventListener("keyup", (e) => {
+    if (e.code === "KeyD" || e.code === "KeyA") lightCubeMoveDirX = 0;
+
+    if (e.code === "KeyW" || e.code === "KeyS") lightCubeMoveDirZ = 0;
+
+    if (e.code === "ArrowUp" || e.code === "ArrowDown") zoomDir = 0;
+
+    if (e.code === "ArrowRight" || e.code === "ArrowLeft") cameraRotateDir = 0;
   });
 
   function render() {
     gl.enable(gl.DEPTH_TEST);
     gl.clearColor(0.9, 0.9, 0.9, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    lightCube[0] += lightCubeMoveDirX * lightCubeSpeed;
+    lightCube[2] += -lightCubeMoveDirZ * lightCubeSpeed;
+
+    rotation += cameraRotateDir * cameraRotateSpeed;
+
+    const view = glMatrix.mat4.create();
+    const angle = glMatrix.vec3.angle(camera, [0, 0, 0]);
+    const curDistance = glMatrix.vec3.distance(camera, [0, 0, 0]);
+    const newDistance = curDistance - zoomDir * zoomSpeed;
+    if (newDistance >= distanceMin) {
+      camera[1] = Math.cos(angle) * newDistance;
+      camera[2] = Math.sin(angle) * newDistance;
+    }
+    const curCameraPosition = glMatrix.vec3.rotateY(glMatrix.vec3.create(), camera, [0, 0, 0], rotation);
+    glMatrix.mat4.lookAt(view, curCameraPosition, [0, 0, 0], [0, 1, 0]);
+
+    gl.uniformMatrix4fv(uView, false, view);
+    gl.uniform3fv(uViewerPosition, camera);
+
+    // model for cube;
+    glMatrix.mat4.translate(models[2], glMatrix.mat4.create(), lightCube);
+
+    gl.uniform3fv(uLightPosition, lightCube);
 
     gl.uniform1i(uIsLightOn, isLightOn);
 
